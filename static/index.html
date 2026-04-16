@@ -335,6 +335,37 @@ select option { background: var(--surface2); }
 }
 .error-bar-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
 
+/* ── multi-label profile ── */
+.ml-section { margin-top: 14px; }
+.ml-section-title {
+  font-size: 10px; font-family: var(--mono);
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 8px;
+}
+.ml-cat-row { margin-bottom: 10px; }
+.ml-cat-name {
+  font-size: 12px; font-weight: 500;
+  color: var(--text); margin-bottom: 5px;
+  text-transform: capitalize;
+}
+.ml-indicators { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ml-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 20px;
+  font-family: var(--mono); font-weight: 500;
+}
+.ml-badge-none    { background: rgba(123,127,150,.15); color: var(--muted); }
+.ml-badge-low     { background: rgba(255,209,102,.15); color: var(--accent4); }
+.ml-badge-moderate{ background: rgba(108,99,255,.18);  color: var(--accent); }
+.ml-badge-high    { background: rgba(255,107,107,.18); color: var(--accent2); }
+.ml-prevalence {
+  font-size: 11px; color: var(--muted);
+}
+.ml-prev-bar-track {
+  height: 3px; background: var(--border);
+  border-radius: 2px; overflow: hidden; margin-top: 4px;
+}
+.ml-prev-bar-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
+
 /* ── cross tab ── */
 .crosstab-wrap { overflow-x: auto; }
 table.crosstab {
@@ -408,6 +439,139 @@ table.stud-table {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── mobile topbar ── */
+.mobile-topbar {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  z-index: 200;
+}
+
+/* ── hamburger button ── */
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform .25s, opacity .25s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── sidebar overlay (mobile) ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 150;
+}
+.sidebar-overlay.show { display: block; }
+
+/* ── responsive breakpoints ── */
+@media (max-width: 768px) {
+  .mobile-topbar { display: flex; }
+
+  body { font-size: 13px; }
+
+  .shell { flex-direction: column; }
+
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 290px;
+    min-width: 0;
+    transform: translateX(-100%);
+    transition: transform .28s ease;
+    z-index: 180;
+    height: 100%;
+    padding-top: 16px;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  .main {
+    padding: 80px 16px 32px;
+    overflow-y: auto;
+  }
+
+  .welcome { min-height: 60vh; }
+  .welcome-title { font-size: 24px; }
+  .welcome-sub { font-size: 13px; }
+
+  /* stat row: 2 cols on mobile */
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+
+  /* val grid: 1 col on mobile */
+  .val-grid { grid-template-columns: 1fr; }
+
+  /* chart row: stack on mobile */
+  .chart-row { grid-template-columns: 1fr; }
+
+  /* cards: tighter padding */
+  .card { padding: 16px; }
+
+  .stat-val { font-size: 22px; }
+  .val-num { font-size: 18px; }
+
+  /* toast: full width at bottom */
+  .toast {
+    left: 16px; right: 16px; bottom: 16px;
+    max-width: none;
+  }
+
+  /* dropzone: shorter */
+  .dropzone { padding: 16px; }
+
+  /* answer key scroll: shorter */
+  .ank-scroll { max-height: 200px; }
+
+  /* chi-wrap: horizontal scroll */
+  .chi-wrap { max-height: 260px; }
+
+  /* stud-wrap: horizontal scroll */
+  .stud-wrap { max-height: 280px; }
+
+  /* prevent iOS zoom on inputs */
+  input[type=text], input[type=number], select {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+  .ank-choice select { font-size: 14px; padding: 5px 6px; }
+
+  /* domain range inputs */
+  .domain-row-range input { width: 52px; font-size: 15px; }
+
+  /* run button: easier to tap */
+  .btn-primary { padding: 14px 18px; font-size: 14px; }
+}
+
+@media (max-width: 480px) {
+  .stat-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-val { font-size: 20px; }
+  .card { padding: 12px; }
+  .chart-box { height: 200px; }
+  .welcome-title { font-size: 20px; }
+  .main { padding: 72px 12px 28px; }
+}
 </style>
 </head>
 <body>
@@ -419,10 +583,26 @@ table.stud-table {
 
 <div class="toast" id="toast"></div>
 
+<!-- ── MOBILE TOPBAR ── -->
+<div class="mobile-topbar">
+  <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="brand" style="margin-bottom:0">
+    <div class="brand-icon">⬡</div>
+    <div>
+      <div class="brand-name">ErrPattern</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SIDEBAR OVERLAY ── -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
 <div class="shell">
 
   <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
 
     <div>
       <div class="brand">
@@ -570,7 +750,7 @@ table.stud-table {
 
       <!-- K-modes profiles -->
       <div class="card">
-        <div class="card-title">K-modes clusters <span class="pill">dominant error type</span></div>
+        <div class="card-title">K-modes clusters <span class="pill">multi-label error profiles</span></div>
         <div class="cluster-grid" id="kmodes-grid"></div>
       </div>
 
@@ -584,6 +764,16 @@ table.stud-table {
       <div class="card">
         <div class="card-title">Cross-tabulation <span class="pill">compound error profiles</span></div>
         <div class="crosstab-wrap" id="crosstab-wrap"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Behavioral Clusters <span class="pill">PCA scatter projection</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
+          Note: PCA is a 2D projection; clustering is performed on the full feature space.
+        </div>
+        <div style="position:relative;height:280px">
+          <canvas id="scatterPlot"></canvas>
+        </div>
       </div>
 
       <!-- Domain chart -->
@@ -619,6 +809,21 @@ table.stud-table {
 </div>
 
 <script>
+// ── mobile sidebar ─────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const btn     = document.getElementById('hamburger-btn');
+  const isOpen  = sidebar.classList.toggle('open');
+  overlay.classList.toggle('show', isOpen);
+  btn.classList.toggle('open', isOpen);
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+  document.getElementById('hamburger-btn').classList.remove('open');
+}
+
 // ── state ──────────────────────────────────────────────────────────────────
 let csvFile  = null;
 let domains  = [];
@@ -805,6 +1010,8 @@ async function runAnalysis() {
   fd.append('config', JSON.stringify(config));
 
   document.getElementById('loading').classList.add('show');
+  // close sidebar on mobile when analysis starts
+  closeSidebar();
 
   try {
     const res  = await fetch('/api/analyze', {method:'POST', body: fd});
@@ -816,6 +1023,67 @@ async function runAnalysis() {
   } finally {
     document.getElementById('loading').classList.remove('show');
   }
+}
+
+// ── scatter plot integration ────────────────────────────────────────────────
+function renderScatter(d) {
+  if (charts.scatter) charts.scatter.destroy();
+  const grouped = {};
+
+  d.scatter.forEach((p, i) => {
+    const c = d.kmeans_labels[i];
+    if (!grouped[c]) grouped[c] = [];
+    // Grab the actual student ID mapping from the payload
+    grouped[c].push({ x: p.x, y: p.y, id: d.students[i].id }); 
+  });
+
+  const datasets = Object.keys(grouped).map(k => ({
+    label: 'Cluster ' + k,
+    data: grouped[k],
+    backgroundColor: CLUSTER_COLORS[k] + 'aa',
+    borderColor: CLUSTER_COLORS[k],
+    pointRadius: 5,
+    pointHoverRadius: 7,
+
+    // 🔥 NEW: differentiate using KModes
+    pointStyle: (ctx) => {
+      const i = ctx.dataIndex;
+      const kmode = d.kmodes_labels[i];
+
+      if (kmode === 0) return 'circle';
+      if (kmode === 1) return 'rect';
+      return 'triangle';
+    }
+  }));
+
+  const ctx = document.getElementById('scatterPlot').getContext('2d');
+  charts.scatter = new Chart(ctx, {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#7b7f96', font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `Student ID: ${ctx.raw.id} (Cluster ${ctx.dataset.label.replace('Cluster ', '')})`
+          }
+        }
+      },
+      scales: {
+        x: { 
+          title: { display: true, text: 'PCA 1 (Behavioral Variance)', color: '#7b7f96' },
+          ticks: { color: '#7b7f96' }, 
+          grid: { color: '#2a2d3a' } 
+        },
+        y: { 
+          title: { display: true, text: 'PCA 2 (Behavioral Variance)', color: '#7b7f96' },
+          ticks: { color: '#7b7f96' }, 
+          grid: { color: '#2a2d3a' } 
+        }
+      }
+    }
+  });
 }
 
 // ── render results ──────────────────────────────────────────────────────────
@@ -837,6 +1105,7 @@ function renderResults(d) {
   renderDomainChart(d);
   renderChiSquare(d);
   renderStudentTable(d);
+  renderScatter(d);
 
   r.scrollIntoView({behavior:'smooth'});
 }
@@ -951,55 +1220,133 @@ function renderValidation(d) {
 }
 
 function renderKmodesProfiles(d) {
-  const allTypes = [...new Set(
-    d.kmodes_profiles.flatMap(p => Object.keys(p.breakdown))
-  )];
-  document.getElementById('kmodes-grid').innerHTML = d.kmodes_profiles.map((p,i) => {
-    const bars = allTypes.map((t,j) => {
+  const distCats = d.distractor_categories || [];
+
+  document.getElementById('kmodes-grid').innerHTML = d.kmodes_profiles.map((p, i) => {
+    const color = COLORS[i % COLORS.length];
+
+    // ── overall breakdown bars (all error types combined across domains) ──
+    const allTypes = Object.keys(p.breakdown);
+    const breakdownBars = allTypes.map((t, j) => {
       const pct = p.breakdown[t] || 0;
       return `
         <div class="error-bar">
-          <div class="error-bar-label"><span>${t}</span><span>${pct}%</span></div>
+          <div class="error-bar-label"><span>${t.replace(/_/g,' ')}</span><span>${pct}%</span></div>
           <div class="error-bar-track">
             <div class="error-bar-fill" style="width:${pct}%;background:${COLORS[j%COLORS.length]}"></div>
           </div>
         </div>`;
     }).join('');
+
+    // ── multi-label profile section ──
+    let mlHtml = '';
+    if (p.multi_label_profile && distCats.length) {
+      const bandClass = b => ({
+        none:'ml-badge-none', low:'ml-badge-low',
+        moderate:'ml-badge-moderate', high:'ml-badge-high'
+      }[b] || 'ml-badge-none');
+
+      const catRows = distCats.map(cat => {
+        const info = p.multi_label_profile[cat] || {prevalence_pct:0, mean_item_count:0};
+        const prev = info.prevalence_pct;
+        const mean = info.mean_item_count;
+
+        // derive band from prevalence for display
+        let band = 'none';
+        if (prev > 60) band = 'high';
+        else if (prev > 30) band = 'moderate';
+        else if (prev > 0)  band = 'low';
+
+        return `
+          <div class="ml-cat-row">
+            <div class="ml-cat-name">${cat.replace(/_/g,' ')}</div>
+            <div class="ml-indicators">
+              <span class="ml-badge ${bandClass(band)}">${band}</span>
+              <span class="ml-prevalence">${prev}% of students · avg ${mean} items</span>
+            </div>
+            <div class="ml-prev-bar-track">
+              <div class="ml-prev-bar-fill" style="width:${Math.min(prev,100)}%;background:${color}"></div>
+            </div>
+          </div>`;
+      }).join('');
+
+      mlHtml = `
+        <div class="ml-section">
+          <div class="ml-section-title">Multi-label prevalence per error type</div>
+          ${catRows}
+        </div>`;
+    }
+
     return `
-      <div class="cluster-card" style="border-color:${COLORS[i]}44">
+      <div class="cluster-card" style="border-color:${color}44">
         <div class="cluster-num">K-MODES CLUSTER ${p.cluster}</div>
-        <div class="cluster-dominant" style="color:${COLORS[i]}">${p.dominant_error.replace(/_/g,' ')}</div>
+        <div class="cluster-dominant" style="color:${color}">${p.dominant_error.replace(/_/g,' ')}</div>
         <div class="cluster-size">${p.size} students</div>
-        ${bars}
+        <div style="margin-top:10px">
+          <div class="ml-section-title">Overall error breakdown</div>
+          ${breakdownBars}
+        </div>
+        ${mlHtml}
       </div>`;
   }).join('');
 }
 
 function renderKmeansProfiles(d) {
-  document.getElementById('kmeans-grid').innerHTML = d.kmeans_profiles.map((p,i) => {
-    const rows = Object.entries(p.centroid).map(([k,v]) => {
-      const pct = Math.round(v*100);
-      return `
-        <div class="error-bar">
-          <div class="error-bar-label">
-            <span>${k.replace(/__/g,' — ').replace(/_/g,' ')}</span>
-            <span>${pct}%</span>
-          </div>
-          <div class="error-bar-track">
-            <div class="error-bar-fill" style="width:${Math.min(pct,100)}%;background:${COLORS[(i+3)%COLORS.length]}"></div>
-          </div>
-        </div>`;
-    }).join('');
+  document.getElementById('kmeans-grid').innerHTML = d.kmeans_profiles.map((p, i) => {
+  const color = COLORS[i % COLORS.length];
+
+  const values = Object.values(p.centroid);
+  const maxVal = Math.max(...values);
+
+  const bars = Object.entries(p.centroid).map(([k,v]) => {
+    const isTop = v === maxVal;
+
     return `
-      <div class="cluster-card" style="border-color:${COLORS[(i+3)%COLORS.length]}44">
-        <div class="cluster-num">K-MEANS CLUSTER ${p.cluster}</div>
-        <div class="cluster-dominant" style="color:${COLORS[(i+3)%COLORS.length]}">
-          Weakest: ${p.weakest_domain}
+      <div class="error-bar">
+        <div class="error-bar-label">
+          <span ${isTop ? 'style="color:var(--accent3);font-weight:600"' : ''}>
+            ${k.replace(/_/g,' ')}
+          </span>
+          <span>${(v*100).toFixed(0)}%</span>
         </div>
-        <div class="cluster-size">${p.size} students</div>
-        ${rows}
-      </div>`;
+        <div class="error-bar-track">
+          <div class="error-bar-fill"
+               style="width:${v*100}%;background:${isTop ? '#43e097' : color}">
+          </div>
+        </div>
+      </div>
+    `;
   }).join('');
+
+  return `
+    <div class="cluster-card" style="border-color:${color}44">
+
+      <div class="cluster-num">K-MEANS CLUSTER ${p.cluster}</div>
+
+      <!-- 🔥 NEW: cluster name -->
+      <div style="font-size:13px;font-weight:600;color:${color}">
+        ${p.cluster_name}
+      </div>
+
+      <!-- 🔥 NEW: summary -->
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
+        ${p.summary}
+      </div>
+
+      <div class="cluster-size">${p.size} students</div>
+
+      <!-- 🔥 NEW: expanded profile -->
+      <div style="margin-bottom:10px;font-size:12px">
+        <div><strong>Weakest Domain:</strong> ${p.weakest_domain}</div>
+        <div><strong>Dominant Error:</strong> ${p.dominant_error}</div>
+        <div><strong>Severity:</strong> ${p.severity}</div>
+      </div>
+
+      ${bars}
+
+    </div>
+  `;
+}).join('');
 }
 
 function renderCrosstab(d) {
@@ -1013,14 +1360,14 @@ function renderCrosstab(d) {
   });
 
   let header = '<tr><th class="row-header">K-modes \\ K-means</th>';
-  for (let j = 0; j < K; j++) header += `<th>Severity ${j}</th>`;
+  for (let j = 0; j < K; j++) header += `<th>${['Low','Moderate','High'][j] || 'Cluster '+j}</th>`;
   header += '</tr>';
 
   let body = '';
   for (let i = 0; i < K; i++) {
     const row    = d.cross_tab[i] || [];
     const maxVal = Math.max(...d.cross_tab.flat());
-    body += `<tr><td class="row-header">Error type ${i}</td>`;
+    body += `<tr><td class="row-header">${(d.kmodes_profiles[i]?.dominant_error || 'Error').replace(/_/g,' ')}</td>`;
     for (let j = 0; j < K; j++) {
       const v    = row[j] || 0;
       const pct  = maxVal > 0 ? v / maxVal : 0;
@@ -1032,10 +1379,65 @@ function renderCrosstab(d) {
       const badge = prof && prof.dominant && v > 0
         ? `<div style="font-size:9px;background:rgba(67,224,151,.2);color:var(--accent3);border-radius:10px;padding:1px 6px;margin-top:4px;display:inline-block">dominant profile</div>`
         : '';
-      body += `<td style="background:${bg};vertical-align:top;padding:12px 10px">
-        <div style="font-size:20px;font-weight:700">${v}</div>
-        ${tip}${badge}
-      </td>`;
+      const profile = nameMap[i] && nameMap[i][j];
+
+if (!profile || v === 0) {
+  body += `<td style="background:${bg}">0</td>`;
+  continue;
+}
+
+const total = d.n_students;
+const percent = ((v / total) * 100).toFixed(0);
+
+// 🔥 sort error breakdown
+const breakdown = profile.error_breakdown || {};
+const sortedErrors = Object.entries(breakdown)
+  .sort((a,b) => b[1] - a[1]);
+
+// 🔥 secondary errors
+const secondary = sortedErrors.slice(1,3).map(e =>
+  `${e[0].replace(/_/g,' ')} (${e[1]}%)`
+).join(', ');
+
+// 🔥 weakest domain from centroid
+let weakest = '';
+if (profile.centroid) {
+  const acc = Object.entries(profile.centroid)
+    .filter(([k]) => k.includes('accuracy'))
+    .sort((a,b)=>a[1]-b[1]);
+
+  if (acc.length) {
+    weakest = acc[0][0]
+      .replace('__accuracy','')
+      .replace(/_/g,' ');
+  }
+}
+
+body += `
+<td style="background:${bg};vertical-align:top;padding:10px">
+
+  <div style="font-size:16px;font-weight:700">
+    ${v}
+  </div>
+
+  <div style="font-size:11px;color:var(--muted)">
+    ${percent}%
+  </div>
+
+  <div style="margin-top:6px;font-size:11px">
+    <strong>Primary:</strong> ${profile.dominant_error}
+  </div>
+
+  <div style="font-size:11px;color:var(--muted)">
+    Secondary: ${secondary || '—'}
+  </div>
+
+  <div style="margin-top:4px;font-size:11px">
+    Weak: ${weakest}
+  </div>
+
+</td>
+`;
     }
     body += '</tr>';
   }
