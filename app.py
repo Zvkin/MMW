@@ -353,6 +353,83 @@ def analyze():
                 }
             })
 
+        # ── 11b. plain-language cluster summaries for teachers ──────────────
+        # Pair each kmodes group (error type) with its matching kmeans group
+        # (weakest domain) to produce one card per group.
+        SEVERITY_EMOJI = {'High': '🔴', 'Moderate': '🟡', 'Low': '🟢'}
+
+        plain_language_clusters = []
+        for c in range(K):
+            kmo = next((p for p in kmodes_profiles if p['cluster'] == c), None)
+            kme = next((p for p in kmeans_profiles if p['cluster'] == c), None)
+            if not kmo or not kme:
+                continue
+
+            size    = kmo['size']
+            pct     = round(size / n_students * 100)
+            dom_err = kmo['dominant_error'].replace('_', ' ').title()
+            weak_d  = kme['weakest_domain']
+            severity= kme['severity']
+            emoji   = SEVERITY_EMOJI.get(severity, '🟡')
+
+            # Friendly group name based on dominant error
+            group_name = f"Group {c + 1} — {dom_err} Mistakes"
+
+            # What they get wrong sentence
+            # Top 2 errors from breakdown
+            top_errs = list(kmo['breakdown'].keys())[:2]
+            top_errs_fmt = ' and '.join(
+                e.replace('_', ' ').title() for e in top_errs
+            ) if top_errs else dom_err
+
+            # Pull significant questions for this cluster from chi results
+            sig_qs_for_cluster = [
+                r['question'] for r in chi_results if r['significant'] == 1
+            ]
+            sig_qs_note = (
+                f" Questions {', '.join(sig_qs_for_cluster[:3])} show the clearest differences between groups."
+                if sig_qs_for_cluster else ""
+            )
+
+            what_wrong = (
+                f"Students in this group mostly make {top_errs_fmt} mistakes. "
+                f"These errors show up most often in the {weak_d} topic.{sig_qs_note}"
+            )
+
+            # Urgency sentence
+            if severity == 'High':
+                urgency = (
+                    f"This group needs the most attention — their error rate is high."
+                )
+            elif severity == 'Moderate':
+                urgency = (
+                    f"This group has a moderate level of mistakes — worth addressing soon."
+                )
+            else:
+                urgency = (
+                    f"This group is doing relatively well — a light review should be enough."
+                )
+
+            # One-sentence classroom action
+            classroom_action = (
+                f"Run a short focused activity on {dom_err.lower()} mistakes "
+                f"using {weak_d} examples."
+            )
+
+            plain_language_clusters.append({
+                'group_number': c + 1,
+                'group_name': group_name,
+                'size': size,
+                'pct': pct,
+                'dominant_error': dom_err,
+                'weakest_domain': weak_d,
+                'severity': severity,
+                'severity_emoji': emoji,
+                'what_wrong': what_wrong,
+                'urgency': urgency,
+                'classroom_action': classroom_action,
+            })
+
         # ── 12. cross-tabulation ──────────────────────────────────────────────
         cross = pd.crosstab(labels_modes, labels_means).values.tolist()
 
@@ -388,6 +465,54 @@ def analyze():
                     'centroid': kmeans_p['centroid']
                 })
 
+        # ── 12b. cross-tab summary ───────────────────────────────────────────
+        # For each kmodes cluster, find which error type dominates which domain
+        # by pairing it with the kmeans cluster it overlaps most with.
+        cross_tab_summary = []
+        for i in range(K):
+            kmode_p = next((p for p in kmodes_profiles if p['cluster'] == i), None)
+            if not kmode_p:
+                continue
+
+            # Find the kmeans cluster this kmodes cluster overlaps most with
+            row_counts = cross_np[i]
+            best_j = int(np.argmax(row_counts))
+            kmeans_p = next((p for p in kmeans_profiles if p['cluster'] == best_j), None)
+
+            dom_err   = kmode_p['dominant_error'].replace('_', ' ').title()
+            weak_dom  = kmeans_p['weakest_domain'] if kmeans_p else 'Unknown'
+            size      = kmode_p['size']
+            pct       = round(size / n_students * 100, 1)
+
+            # Top 2 error types with their percentages from breakdown
+            top_errs = list(kmode_p['breakdown'].items())[:2]
+            top_errs_str = ', '.join(
+                f"{e.replace('_',' ').title()} ({v}%)" for e, v in top_errs
+            )
+
+            # Which specific questions are significant for this cluster
+            # (chi-square significant questions where this cluster's error is dominant)
+            sig_qs = [
+                r['question'] for r in chi_results
+                if r['significant'] == 1
+            ]
+            sig_qs_str = ', '.join(sig_qs[:5]) if sig_qs else 'none'
+
+            cross_tab_summary.append({
+                'cluster': i + 1,
+                'size': size,
+                'pct': pct,
+                'dominant_error': dom_err,
+                'weakest_domain': weak_dom,
+                'top_errors': top_errs_str,
+                'significant_questions': sig_qs_str,
+                'plain': (
+                    f"Group {i+1} ({size} students, {pct}%): mainly makes "
+                    f"{dom_err} mistakes, struggles most in {weak_dom}. "
+                    f"Top errors: {top_errs_str}."
+                )
+            })
+
         # ── 13. per-domain error rate breakdown for chart ─────────────────────
         domain_chart = []
         for domain in domains:
@@ -414,8 +539,183 @@ def analyze():
                 'kmeans_cluster': int(labels_means[i]),
             })
 
-        # ── 15. assemble response ─────────────────────────────────────────────
+        # ── 15. overall_summary + insight ────────────────────────────────────
+        # Clustering quality rating (silhouette-based)
+        avg_sil = (sil_km + sil_kmo) / 2
+        if avg_sil >= 0.5:
+            quality_label = 'Strong'
+            quality_note  = f'Students show clearly distinct mistake patterns. About {round((1 - avg_sil) * 50 + 50)}% of students fit their group well — the groups are easy to tell apart.'
+        elif avg_sil >= 0.25:
+            quality_label = 'Moderate'
+            quality_note  = f'Most students fit well into their group, though roughly {round(avg_sil * 30)}% share traits with more than one group.'
+        else:
+            quality_label = 'Weak'
+            quality_note  = f'The groups overlap quite a bit — only about {round(avg_sil * 100)}% separation between groups. Use as a rough guide only.'
+
+        # Stability rating (ARI-based, average of both methods)
+        avg_ari = (ari_means_mean + ari_modes_mean) / 2
+        if avg_ari >= 0.75:
+            stability_label = 'High'
+            stability_note  = f'The same groups appear every time the analysis runs ({round(avg_ari*100)}% agreement across runs) — you can trust these results.'
+        elif avg_ari >= 0.40:
+            stability_label = 'Moderate'
+            stability_note  = f'The groups are mostly stable ({round(avg_ari*100)}% agreement across runs), with minor differences each time.'
+        else:
+            stability_label = 'Low'
+            stability_note  = f'The groups shift noticeably between runs ({round(avg_ari*100)}% agreement) — treat them as a starting point only.'
+
+        # Statistical significance summary
+        chi_total = len(chi_results)
+        sig_ratio = sig_count / chi_total if chi_total > 0 else 0
+        if sig_ratio >= 0.7:
+            chi_label = 'High'
+            chi_note  = (f'{sig_count} out of {chi_total} questions had clearly different mistake patterns across groups — the groups are meaningful.')
+        elif sig_ratio >= 0.3:
+            chi_label = 'Moderate'
+            chi_note  = (f'{sig_count} out of {chi_total} questions showed noticeable differences between groups — a partial signal.')
+        else:
+            chi_label = 'Low'
+            chi_note  = (f'Only {sig_count} out of {chi_total} questions showed differences between groups — the groups may look very similar on most questions.')
+
+        # Dominant error pattern across ALL clusters (most common dominant_error)
+        all_dominant_errors = [p['dominant_error'] for p in kmodes_profiles
+                               if p['dominant_error'] != 'none']
+        from collections import Counter as _C2
+        if all_dominant_errors:
+            dom_err_counts = _C2(all_dominant_errors)
+            global_dominant_error = dom_err_counts.most_common(1)[0][0]
+        else:
+            global_dominant_error = 'mixed'
+
+        # Weakest domain overall (lowest mean accuracy across all clusters)
+        weakest_domain_counts = _C2(
+            [p['weakest_domain'] for p in kmeans_profiles]
+        )
+        global_weakest_domain = weakest_domain_counts.most_common(1)[0][0] \
+            if kmeans_profiles else 'Unknown'
+
+        # Largest cluster summary
+        largest_cluster = max(kmodes_profiles, key=lambda p: p['size'])
+        largest_pct = round(largest_cluster['size'] / n_students * 100, 1)
+
+        # Assemble overall_summary object
+        overall_summary = {
+            'clustering_quality': {
+                'label': quality_label,
+                'score': round(avg_sil, 3),
+                'note': quality_note
+            },
+            'stability': {
+                'label': stability_label,
+                'score': round(avg_ari, 3),
+                'note': stability_note
+            },
+            'statistical_significance': {
+                'label': chi_label,
+                'significant_count': sig_count,
+                'total_questions': chi_total,
+                'note': chi_note
+            },
+            'dominant_error_pattern': global_dominant_error,
+            'weakest_domain': global_weakest_domain,
+            'n_students': n_students,
+            'k': K,
+            'plain_language_clusters': plain_language_clusters,
+            'cross_tab_summary': cross_tab_summary
+        }
+
+        # ── plain-language insight (what / struggle / action) ────────────────
+        err_label = global_dominant_error.replace('_', ' ').title()
+        dom_label = global_weakest_domain
+
+        # WHAT IS HAPPENING
+        if quality_label == 'Strong' and stability_label in ('High', 'Moderate'):
+            what = (
+                f"Your {n_students} students fall into {K} clearly distinct groups "
+                f"based on their mistake patterns — and the same groups appear "
+                f"every time the analysis runs, so you can act on these with confidence."
+            )
+        elif quality_label == 'Moderate' or stability_label == 'Moderate':
+            what = (
+                f"Your {n_students} students split into {K} groups with noticeably "
+                f"different mistake patterns. Most students fit their group well, "
+                f"though a few sit between groups — use this as a helpful guide "
+                f"rather than a definitive list."
+            )
+        else:
+            what = (
+                f"Your {n_students} students show {K} rough groupings of mistake "
+                f"patterns, but there is quite a bit of overlap between groups. "
+                f"Use these as a broad starting point for planning, not as "
+                f"exact labels for individual students."
+            )
+
+        # WHAT STUDENTS STRUGGLE WITH
+        if global_dominant_error != 'mixed':
+            struggle = (
+                f"{largest_pct}% of your students are making the same type of mistake: "
+                f'"{err_label}." '
+                f"This comes up most in the {dom_label} topic. "
+                f"It is the single biggest pattern worth addressing first."
+            )
+        else:
+            struggle = (
+                f"There is no single mistake that dominates across all groups. "
+                f"However, the {dom_label} topic has the lowest scores overall, "
+                f"making it the best place to start when planning a review."
+            )
+
+        # WHAT ACTION TO TAKE
+        if chi_label == 'High':
+            confidence_note = (
+                f"The mistake patterns are clearly different between groups, "
+                f"so it is worth teaching each group differently."
+            )
+        elif chi_label == 'Moderate':
+            confidence_note = (
+                f"Some questions show clear differences between groups. "
+                f"Focus on those questions first when planning group lessons."
+            )
+        else:
+            confidence_note = (
+                f"The differences between groups are small for most questions, "
+                f"so a whole-class review may work just as well as group-specific lessons."
+            )
+
+        if quality_label == 'Strong' and stability_label in ('High', 'Moderate'):
+            action = (
+                f'Split students into their {K} groups and run a focused review '
+                f'on "{err_label}" mistakes in the {dom_label} topic. '
+                f"{confidence_note}"
+            )
+        elif quality_label in ('Strong', 'Moderate'):
+            action = (
+                f'Use the {K} groups as a guide and plan a review session '
+                f'targeting "{err_label}" mistakes in the {dom_label} topic. '
+                f"{confidence_note}"
+            )
+        else:
+            action = (
+                f'Start with a whole-class review on "{err_label}" mistakes '
+                f"in the {dom_label} topic, then check whether students need "
+                f"group-specific follow-up. {confidence_note}"
+            )
+
+        # ── cross-tab breakdown paragraph ────────────────────────────────────
+        cross_tab_lines = []
+        for entry in cross_tab_summary:
+            cross_tab_lines.append(entry['plain'])
+        cross_tab_paragraph = (
+            "Here is what the cross-tabulation shows for each group:\n"
+            + "\n".join(f"  • {line}" for line in cross_tab_lines)
+        )
+
+        insight = f"{what}\n\n{struggle}\n\n{cross_tab_paragraph}\n\n{action}"
+
+        # ── 16. assemble response ─────────────────────────────────────────────
         return jsonify({
+            'overall_summary': overall_summary,
+            'insight': insight,
             'n_students': n_students,
             'k': K,
             'domains': [d['name'] for d in domains],

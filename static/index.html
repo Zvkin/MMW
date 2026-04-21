@@ -22,7 +22,156 @@
   --mono: 'DM Mono', monospace;
   --sans: 'DM Sans', sans-serif;
   --radius: 12px;
+  /* chart colours exposed for JS re-theming */
+  --chart-grid: #2a2d3a;
+  --chart-tick: #7b7f96;
 }
+
+/* ── LIGHT MODE ── */
+html.light {
+  --bg: #f4f5f9;
+  --surface: #ffffff;
+  --surface2: #eef0f6;
+  --border: #d8dbe8;
+  --accent: #5a52e0;
+  --accent2: #e8484b;
+  --accent3: #1db87a;
+  --accent4: #c9900a;
+  --text: #1a1c28;
+  --muted: #6b6f88;
+  --chart-grid: #d8dbe8;
+  --chart-tick: #6b6f88;
+}
+
+/* ── THEME TOGGLE BUTTON ── */
+.theme-toggle {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 8px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: border-color .2s, color .2s, background .2s;
+  white-space: nowrap;
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.theme-toggle .toggle-track {
+  width: 28px; height: 16px;
+  background: var(--border);
+  border-radius: 20px;
+  position: relative;
+  transition: background .25s;
+  flex-shrink: 0;
+}
+.theme-toggle .toggle-thumb {
+  width: 12px; height: 12px;
+  background: var(--muted);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: transform .25s, background .25s;
+}
+html.light .theme-toggle .toggle-track { background: var(--accent); }
+html.light .theme-toggle .toggle-thumb {
+  transform: translateX(12px);
+  background: #fff;
+}
+.theme-toggle .toggle-icon { font-size: 13px; line-height: 1; }
+
+/* light mode: fix loading overlay */
+html.light .loading-overlay { background: rgba(244,245,249,.88); }
+
+/* light mode: spinner border */
+html.light .spinner {
+  border-color: var(--border);
+  border-top-color: var(--accent);
+}
+
+/* light mode: toast */
+html.light .toast { background: var(--accent2); }
+
+/* light mode: chart canvas backgrounds */
+html.light canvas { background: transparent; }
+
+/* light mode: select option */
+html.light select option { background: var(--surface2); color: var(--text); }
+
+/* light mode: gradient top border on OE card stays vibrant */
+html.light .oe-card::before {
+  background: linear-gradient(90deg, #5a52e0, #e8484b, #1db87a);
+}
+
+/* light mode: insight box tint */
+html.light .oe-insight {
+  background: rgba(90,82,224,.06);
+  border-color: rgba(90,82,224,.25);
+}
+
+/* light mode: group action box */
+html.light .oe-group-action {
+  background: rgba(90,82,224,.07);
+  border-color: rgba(90,82,224,.2);
+}
+
+/* light mode: help example chip */
+html.light .help-example {
+  background: rgba(90,82,224,.12);
+}
+
+/* light mode: brand gradient icon */
+html.light .brand-icon {
+  background: linear-gradient(135deg, #5a52e0, #e8484b);
+}
+
+/* light mode: mobile topbar */
+html.light .mobile-topbar {
+  background: var(--surface);
+  border-bottom-color: var(--border);
+}
+
+/* light mode: sidebar overlay darker */
+html.light .sidebar-overlay { background: rgba(30,32,40,.45); }
+
+/* light mode: help modal */
+html.light .help-modal { background: var(--surface); border-color: var(--border); }
+
+/* light mode: dropzone hover */
+html.light .dropzone:hover, html.light .dropzone.over {
+  border-color: var(--accent);
+  background: rgba(90,82,224,.05);
+}
+
+/* light mode: val badges */
+html.light .badge-good { background: rgba(29,184,122,.12); }
+html.light .badge-ok   { background: rgba(201,144,10,.12); }
+html.light .badge-low  { background: rgba(232,72,75,.12); }
+
+/* light mode: ml badges */
+html.light .ml-badge-none     { background: rgba(107,111,136,.12); }
+html.light .ml-badge-low      { background: rgba(201,144,10,.12); }
+html.light .ml-badge-moderate { background: rgba(90,82,224,.12); }
+html.light .ml-badge-high     { background: rgba(232,72,75,.12); }
+
+/* light mode: group tag */
+html.light .oe-group-tag-high     { background: rgba(232,72,75,.1); }
+html.light .oe-group-tag-moderate { background: rgba(201,144,10,.1); }
+html.light .oe-group-tag-low      { background: rgba(29,184,122,.1); }
+
+/* light mode: sig table */
+html.light .sig-yes { color: var(--accent3); }
+html.light .sig-no  { color: var(--muted); }
+
+/* light mode: scrollbar */
+html.light ::-webkit-scrollbar-thumb { background: var(--border); }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -572,6 +721,290 @@ table.stud-table {
   .welcome-title { font-size: 20px; }
   .main { padding: 72px 12px 28px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   OVERALL EVALUATION CARD
+   ══════════════════════════════════════════════════════════════════ */
+.oe-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.oe-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+}
+.oe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.oe-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.oe-icon {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg,rgba(108,99,255,.3),rgba(255,107,107,.2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.oe-title { font-size: 13px; font-weight: 600; }
+.oe-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+
+/* badges */
+.oe-badges {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+@media (max-width: 640px) { .oe-badges { grid-template-columns: 1fr; } }
+.oe-badge {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.oe-badge-title {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--muted); margin-bottom: 5px;
+}
+.oe-badge-value {
+  font-size: 15px; font-weight: 700;
+  display: flex; align-items: baseline; gap: 6px; margin-bottom: 2px;
+}
+.oe-badge-score { font-size: 11px; font-family: var(--mono); color: var(--muted); font-weight: 400; }
+.oe-badge-note  { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.lbl-strong, .lbl-high   { color: var(--accent3); }
+.lbl-moderate             { color: var(--accent4); }
+.lbl-weak,   .lbl-low    { color: var(--accent2); }
+
+/* dominant + domain pills */
+.oe-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.oe-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 12px; font-weight: 600;
+}
+.oe-pill-err  { background: rgba(255,209,102,.12); border: 1px solid rgba(255,209,102,.3); color: var(--accent4); }
+.oe-pill-dom  { background: rgba(108,99,255,.12);  border: 1px solid rgba(108,99,255,.3);  color: var(--accent); }
+.oe-pill-label { font-size: 10px; font-weight: 400; color: var(--muted); }
+
+/* insight box — three-paragraph structure */
+.oe-insight {
+  background: rgba(108,99,255,.07);
+  border: 1px solid rgba(108,99,255,.2);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 16px 18px;
+}
+.oe-insight-heading {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--accent);
+  display: flex; align-items: center; gap: 5px; margin-bottom: 14px;
+}
+.oe-para { margin-bottom: 12px; }
+.oe-para:last-child { margin-bottom: 0; }
+.oe-para-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 4px; display: block;
+}
+.oe-para-label-what    { color: var(--accent); }
+.oe-para-label-struggle{ color: var(--accent2); }
+.oe-para-label-crosstab{ color: var(--accent4); }
+.oe-para-label-action  { color: var(--accent3); }
+.oe-para-text { font-size: 13px; color: var(--text); line-height: 1.75; }
+
+/* ══════════════════════════════════════════════════════════════════
+   STUDENT GROUP CARDS (inside OE card)
+   ══════════════════════════════════════════════════════════════════ */
+.oe-groups-heading {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 12px; margin-top: 20px;
+}
+.oe-group-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.oe-group-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  border-top-width: 3px;
+  transition: border-color .2s;
+}
+.oe-group-card:hover { border-color: var(--accent); }
+.oe-group-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 8px;
+  margin-bottom: 8px;
+}
+.oe-group-name {
+  font-size: 12px; font-weight: 700;
+  color: var(--text); line-height: 1.3;
+}
+.oe-group-count {
+  font-size: 11px; color: var(--muted);
+  white-space: nowrap; margin-top: 1px;
+  flex-shrink: 0;
+}
+.oe-group-count strong {
+  font-size: 18px; font-weight: 700;
+  color: var(--text); display: block; line-height: 1;
+}
+.oe-group-body {
+  font-size: 12px; color: var(--muted); line-height: 1.55;
+  margin-bottom: 10px;
+}
+.oe-group-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  border-radius: 6px; padding: 3px 8px;
+  font-size: 11px; font-weight: 600; margin-bottom: 8px;
+}
+.oe-group-tag-high     { background: rgba(255,107,107,.15); color: var(--accent2); }
+.oe-group-tag-moderate { background: rgba(255,209,102,.15); color: var(--accent4); }
+.oe-group-tag-low      { background: rgba(67,224,151,.15);  color: var(--accent3); }
+.oe-group-action {
+  background: rgba(108,99,255,.1);
+  border: 1px solid rgba(108,99,255,.2);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-size: 11px; color: var(--accent);
+  line-height: 1.45;
+}
+.oe-group-action-label {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--muted); margin-bottom: 3px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DETAIL TOGGLE
+   ══════════════════════════════════════════════════════════════════ */
+.detail-toggle-bar {
+  display: flex; justify-content: flex-end;
+}
+.btn-toggle-detail {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--muted); cursor: pointer;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  padding: 8px 16px; display: flex; align-items: center; gap: 7px;
+  transition: border-color .2s, color .2s;
+}
+.btn-toggle-detail:hover { border-color: var(--accent); color: var(--accent); }
+.toggle-arrow { font-style: normal; display: inline-block; transition: transform .22s; line-height: 1; }
+.btn-toggle-detail.expanded .toggle-arrow { transform: rotate(180deg); }
+.detail-section { display: flex; flex-direction: column; gap: 32px; }
+.detail-section.hidden { display: none; }
+
+/* ══════════════════════════════════════════════════════════════════
+   HELP BUTTON & MODAL
+   ══════════════════════════════════════════════════════════════════ */
+.btn-help {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--muted); cursor: pointer;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  padding: 7px 14px; transition: border-color .2s, color .2s;
+}
+.btn-help:hover { border-color: var(--accent4); color: var(--accent4); }
+
+/* pulsing new-user dot on help button */
+.help-dot {
+  width: 7px; height: 7px;
+  background: var(--accent4);
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 2px;
+  animation: pulse-dot 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.help-dot.gone { display: none; }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .4; transform: scale(.6); }
+}
+
+/* modal backdrop */
+.help-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.65);
+  z-index: 1000;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.help-backdrop.show { display: flex; }
+
+/* modal box */
+.help-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 100%; max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 28px;
+  position: relative;
+  animation: modalIn .2s ease;
+}
+@keyframes modalIn { from { transform: translateY(16px); opacity: 0; } }
+
+.help-modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 20px; gap: 10px;
+}
+.help-modal-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+.help-modal-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.btn-close-modal {
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 20px; line-height: 1; padding: 2px 6px;
+  border-radius: 6px; flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+.btn-close-modal:hover { background: var(--surface2); color: var(--text); }
+
+/* help sections */
+.help-section { margin-bottom: 22px; }
+.help-section:last-child { margin-bottom: 0; }
+.help-section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--accent); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.help-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+}
+.help-item:last-child { margin-bottom: 0; }
+.help-item-q {
+  font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--text);
+}
+.help-item-a {
+  font-size: 12px; color: var(--muted); line-height: 1.65;
+}
+.help-example {
+  display: inline-block; background: rgba(108,99,255,.15);
+  border-radius: 6px; padding: 2px 8px; font-family: var(--mono);
+  font-size: 11px; color: var(--accent); margin-top: 4px;
+}
+
 </style>
 </head>
 <body>
@@ -588,12 +1021,16 @@ table.stud-table {
   <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
     <span></span><span></span><span></span>
   </button>
-  <div class="brand" style="margin-bottom:0">
+  <div class="brand" style="margin-bottom:0;flex:1">
     <div class="brand-icon">⬡</div>
     <div>
       <div class="brand-name">ErrPattern</div>
     </div>
   </div>
+  <button class="theme-toggle" onclick="toggleTheme()" style="padding:4px 10px;gap:5px">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-icon" id="theme-icon-mobile">🌙</span>
+  </button>
 </div>
 
 <!-- ── SIDEBAR OVERLAY ── -->
@@ -612,6 +1049,13 @@ table.stud-table {
           <div class="brand-sub">K-modes + K-means</div>
         </div>
       </div>
+      <!-- theme toggle sits right under the brand -->
+      <button class="theme-toggle" id="theme-toggle-btn"
+              onclick="toggleTheme()" style="margin-top:12px;width:100%;justify-content:flex-start">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="toggle-icon" id="theme-icon">🌙</span>
+        <span id="theme-label">Dark mode</span>
+      </button>
     </div>
 
     <!-- CSV Upload -->
@@ -727,6 +1171,100 @@ table.stud-table {
 
     <div class="results" id="results">
 
+      <!-- ── OVERALL EVALUATION CARD ── -->
+      <div class="oe-card" id="oe-card" style="display:none">
+        <div class="oe-header">
+          <div class="oe-title-row">
+            <div class="oe-icon">📋</div>
+            <div>
+              <div class="oe-title">Overall Evaluation</div>
+              <div class="oe-subtitle">Plain-language summary for teachers and staff</div>
+            </div>
+          </div>
+          <button class="btn-help" id="btn-help" onclick="openHelp()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            How to read this
+            <span class="help-dot" id="help-dot"></span>
+          </button>
+        </div>
+
+        <!-- quality / stability / significance badges -->
+        <div class="oe-badges">
+          <div class="oe-badge">
+            <div class="oe-badge-title">How clear are the groups?</div>
+            <div class="oe-badge-value">
+              <span id="oe-quality-label">—</span>
+              <span class="oe-badge-score" id="oe-quality-score"></span>
+            </div>
+            <div class="oe-badge-note" id="oe-quality-note"></div>
+          </div>
+          <div class="oe-badge">
+            <div class="oe-badge-title">Are the groups consistent?</div>
+            <div class="oe-badge-value">
+              <span id="oe-stability-label">—</span>
+              <span class="oe-badge-score" id="oe-stability-score"></span>
+            </div>
+            <div class="oe-badge-note" id="oe-stability-note"></div>
+          </div>
+          <div class="oe-badge">
+            <div class="oe-badge-title">Do groups differ by question?</div>
+            <div class="oe-badge-value">
+              <span id="oe-chi-label">—</span>
+              <span class="oe-badge-score" id="oe-chi-count"></span>
+            </div>
+            <div class="oe-badge-note" id="oe-chi-note"></div>
+          </div>
+        </div>
+
+        <!-- dominant error + weakest domain pills -->
+        <div class="oe-pills">
+          <div class="oe-pill oe-pill-err">
+            ⚠ <span class="oe-pill-label">Top mistake:</span>
+            <span id="oe-dominant-error">—</span>
+          </div>
+          <div class="oe-pill oe-pill-dom">
+            📌 <span class="oe-pill-label">Weakest topic:</span>
+            <span id="oe-weakest-domain">—</span>
+          </div>
+        </div>
+
+        <!-- four-part insight -->
+        <div class="oe-insight">
+          <div class="oe-insight-heading">✦ What this means for your class</div>
+          <div class="oe-para">
+            <span class="oe-para-label oe-para-label-what">What is happening</span>
+            <div class="oe-para-text" id="oe-insight-what">—</div>
+          </div>
+          <div class="oe-para">
+            <span class="oe-para-label oe-para-label-struggle">What students struggle with</span>
+            <div class="oe-para-text" id="oe-insight-struggle">—</div>
+          </div>
+          <div class="oe-para">
+            <span class="oe-para-label oe-para-label-crosstab">Group-by-group breakdown</span>
+            <div class="oe-para-text" id="oe-insight-crosstab" style="white-space:pre-line">—</div>
+          </div>
+          <div class="oe-para">
+            <span class="oe-para-label oe-para-label-action">What to do next</span>
+            <div class="oe-para-text" id="oe-insight-action">—</div>
+          </div>
+        </div>
+
+        <!-- ── STUDENT GROUP CARDS ── -->
+        <div class="oe-groups-heading">👥 Your student groups at a glance</div>
+        <div class="oe-group-cards" id="oe-group-cards"></div>
+
+      </div>
+
+      <!-- ── DETAIL TOGGLE ── -->
+      <div class="detail-toggle-bar" id="detail-toggle-bar" style="display:none">
+        <button class="btn-toggle-detail" id="toggle-details-btn" onclick="toggleDetailedMetrics()">
+          Show Detailed Metrics <i class="toggle-arrow">▾</i>
+        </button>
+      </div>
+
+      <!-- ── DETAILED METRICS (hidden by default) ── -->
+      <div class="detail-section hidden" id="detailed-metrics-section">
+
       <!-- Overview -->
       <div class="card">
         <div class="card-title">Overview</div>
@@ -804,11 +1342,153 @@ table.stud-table {
         </div>
       </div>
 
+      </div><!-- /detailed-metrics-section -->
+
     </div>
   </main>
 </div>
 
+<!-- ── HELP MODAL ── -->
+<div class="help-backdrop" id="help-backdrop" onclick="closeHelpIfBackdrop(event)">
+  <div class="help-modal" role="dialog" aria-modal="true" aria-label="How to read this page">
+    <div class="help-modal-header">
+      <div>
+        <div class="help-modal-title">How to read this page</div>
+        <div class="help-modal-sub">A quick guide — no data background needed</div>
+      </div>
+      <button class="btn-close-modal" onclick="closeHelp()" aria-label="Close">✕</button>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">👥 What are "groups" or "clusters"?</div>
+      <div class="help-item">
+        <div class="help-item-q">What does a group mean?</div>
+        <div class="help-item-a">
+          A group is a set of students who made <strong>the same types of mistakes</strong>
+          on the quiz. The system automatically finds which students look most similar
+          to each other — no labels or categories are set in advance.
+          <div class="help-example">Example: Group A = students who often mix up decimal placement. Group B = students who get the sign wrong.</div>
+        </div>
+      </div>
+      <div class="help-item">
+        <div class="help-item-q">How many groups should there be?</div>
+        <div class="help-item-a">
+          You choose the number of groups (K) before running the analysis.
+          A good starting point is 3. More groups give more detail but can be harder to act on.
+          <div class="help-example">Example: K = 3 means "find 3 distinct groups of mistake patterns among my students."</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">❌ What are "errors" or "mistake types"?</div>
+      <div class="help-item">
+        <div class="help-item-q">What is a distractor category?</div>
+        <div class="help-item-a">
+          On a multiple-choice quiz, each wrong answer is linked to a <strong>type of mistake</strong>
+          — for example, an off-by-one error, a sign error, or a rounding mistake.
+          You define these labels yourself in the answer key before running the analysis.
+          <div class="help-example">Example: If a student picks choice B and B is labelled "sign error," that student recorded a sign error for that question.</div>
+        </div>
+      </div>
+      <div class="help-item">
+        <div class="help-item-q">What does "dominant mistake" mean?</div>
+        <div class="help-item-a">
+          The dominant mistake is the <strong>most common wrong-answer type</strong>
+          across a group. If most students in a group picked wrong answers linked
+          to decimal errors, the dominant mistake for that group is "decimal."
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">📊 How to read the Overall Evaluation</div>
+      <div class="help-item">
+        <div class="help-item-q">"How clear are the groups?" badge</div>
+        <div class="help-item-a">
+          <strong>Strong</strong> means students in different groups are very different from each other — clear separation.
+          <strong>Moderate</strong> means most students fit well, but some are on the fence.
+          <strong>Weak</strong> means the groups overlap a lot — use with caution.
+        </div>
+      </div>
+      <div class="help-item">
+        <div class="help-item-q">"Are the groups consistent?" badge</div>
+        <div class="help-item-a">
+          This checks whether you get the <strong>same groups every time</strong> the analysis runs.
+          <strong>High</strong> = very stable. <strong>Low</strong> = the groups shift around — treat them as approximate.
+        </div>
+      </div>
+      <div class="help-item">
+        <div class="help-item-q">"Do groups differ by question?" badge</div>
+        <div class="help-item-a">
+          <strong>High</strong> means the groups answer individual questions differently — each group has a distinct weak spot.
+          <strong>Low</strong> means the groups look similar question-by-question — a whole-class approach may work better.
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">🔬 What is in "Detailed Metrics"?</div>
+      <div class="help-item">
+        <div class="help-item-q">Do I need to look at the detailed metrics?</div>
+        <div class="help-item-a">
+          Not for everyday use. The Overall Evaluation at the top already
+          summarises everything you need to make a teaching decision.
+          The detailed section is there for anyone who wants to dig deeper
+          — such as a researcher or data analyst reviewing the results.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script>
+// ── theme ───────────────────────────────────────────────────────────────────
+const CHART_COLORS_DARK  = { grid: '#2a2d3a', tick: '#7b7f96' };
+const CHART_COLORS_LIGHT = { grid: '#d8dbe8', tick: '#6b6f88' };
+
+function applyTheme(mode) {
+  const isLight = mode === 'light';
+  document.documentElement.classList.toggle('light', isLight);
+
+  // update sidebar toggle
+  const lbl  = document.getElementById('theme-label');
+  const icon = document.getElementById('theme-icon');
+  const iconM = document.getElementById('theme-icon-mobile');
+  if (lbl)  lbl.textContent  = isLight ? 'Light mode' : 'Dark mode';
+  if (icon) icon.textContent = isLight ? '☀️' : '🌙';
+  if (iconM) iconM.textContent = isLight ? '☀️' : '🌙';
+
+  // re-theme all existing Chart.js instances
+  const cc = isLight ? CHART_COLORS_LIGHT : CHART_COLORS_DARK;
+  Object.values(charts).forEach(chart => {
+    if (!chart || !chart.options) return;
+    const sc = chart.options.scales || {};
+    ['x','y'].forEach(ax => {
+      if (!sc[ax]) return;
+      if (sc[ax].grid)  sc[ax].grid.color  = cc.grid;
+      if (sc[ax].ticks) sc[ax].ticks.color = cc.tick;
+    });
+    const leg = chart.options.plugins && chart.options.plugins.legend;
+    if (leg && leg.labels) leg.labels.color = cc.tick;
+    chart.update('none');
+  });
+
+  localStorage.setItem('errpattern-theme', mode);
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+}
+
+// restore saved preference on load
+(function() {
+  const saved = localStorage.getItem('errpattern-theme');
+  if (saved === 'light') applyTheme('light');
+})();
+
 // ── mobile sidebar ─────────────────────────────────────────────────────────
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -1025,6 +1705,14 @@ async function runAnalysis() {
   }
 }
 
+// ── chart colour helpers (theme-aware) ──────────────────────────────────────
+function chartGrid() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || '#2a2d3a';
+}
+function chartTick() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--chart-tick').trim() || '#7b7f96';
+}
+
 // ── scatter plot integration ────────────────────────────────────────────────
 function renderScatter(d) {
   if (charts.scatter) charts.scatter.destroy();
@@ -1063,7 +1751,7 @@ function renderScatter(d) {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#7b7f96', font: { size: 11 } } },
+        legend: { labels: { color: chartTick(), font: { size: 11 } } },
         tooltip: {
           callbacks: {
             label: (ctx) => `Student ID: ${ctx.raw.id} (Cluster ${ctx.dataset.label.replace('Cluster ', '')})`
@@ -1072,14 +1760,14 @@ function renderScatter(d) {
       },
       scales: {
         x: { 
-          title: { display: true, text: 'PCA 1 (Behavioral Variance)', color: '#7b7f96' },
-          ticks: { color: '#7b7f96' }, 
-          grid: { color: '#2a2d3a' } 
+          title: { display: true, text: 'PCA 1 (Behavioral Variance)', color: chartTick() },
+          ticks: { color: chartTick() }, 
+          grid: { color: chartGrid() } 
         },
         y: { 
-          title: { display: true, text: 'PCA 2 (Behavioral Variance)', color: '#7b7f96' },
-          ticks: { color: '#7b7f96' }, 
-          grid: { color: '#2a2d3a' } 
+          title: { display: true, text: 'PCA 2 (Behavioral Variance)', color: chartTick() },
+          ticks: { color: chartTick() }, 
+          grid: { color: chartGrid() } 
         }
       }
     }
@@ -1087,6 +1775,128 @@ function renderScatter(d) {
 }
 
 // ── render results ──────────────────────────────────────────────────────────
+// ── help modal ──────────────────────────────────────────────────────────────
+function openHelp() {
+  document.getElementById('help-backdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  // dismiss the first-time pulse dot
+  const dot = document.getElementById('help-dot');
+  if (dot) dot.classList.add('gone');
+}
+function closeHelp() {
+  document.getElementById('help-backdrop').classList.remove('show');
+  document.body.style.overflow = '';
+}
+function closeHelpIfBackdrop(e) {
+  if (e.target === document.getElementById('help-backdrop')) closeHelp();
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeHelp();
+});
+
+// ── detail section toggle ────────────────────────────────────────────────────
+function toggleDetailedMetrics() {
+  const section = document.getElementById('detailed-metrics-section');
+  const btn     = document.getElementById('toggle-details-btn');
+  const isHidden = section.classList.toggle('hidden');
+  btn.classList.toggle('expanded', !isHidden);
+  btn.innerHTML = isHidden
+    ? 'Show Detailed Metrics <i class="toggle-arrow">▾</i>'
+    : 'Hide Detailed Metrics <i class="toggle-arrow">▾</i>';
+}
+
+// ── overall evaluation card ──────────────────────────────────────────────────
+function renderOverallEvaluation(d) {
+  const s = d.overall_summary;
+  if (!s) return;
+
+  const labelClass = lbl => 'lbl-' + lbl.toLowerCase();
+
+  // "How clear are the groups?" badge
+  const qlEl = document.getElementById('oe-quality-label');
+  qlEl.textContent = s.clustering_quality.label;
+  qlEl.className   = labelClass(s.clustering_quality.label);
+  document.getElementById('oe-quality-note').textContent = s.clustering_quality.note;
+
+  // quality context number
+  const qScore = Math.round(s.clustering_quality.score * 100);
+  document.getElementById('oe-quality-score').textContent = qScore + '% separation';
+
+  // "Are the groups consistent?" badge
+  const slEl = document.getElementById('oe-stability-label');
+  slEl.textContent = s.stability.label;
+  slEl.className   = labelClass(s.stability.label);
+  document.getElementById('oe-stability-note').textContent = s.stability.note;
+  // stability context number
+  const sScore = Math.round(s.stability.score * 100);
+  document.getElementById('oe-stability-score').textContent = sScore + '% consistent';
+
+  // "Do groups differ by question?" badge
+  const chEl = document.getElementById('oe-chi-label');
+  chEl.textContent = s.statistical_significance.label;
+  chEl.className   = labelClass(s.statistical_significance.label);
+  document.getElementById('oe-chi-count').textContent =
+    s.statistical_significance.significant_count + '/' +
+    s.statistical_significance.total_questions + ' questions';
+  document.getElementById('oe-chi-note').textContent = s.statistical_significance.note;
+
+  // Top mistake + weakest domain pills
+  document.getElementById('oe-dominant-error').textContent =
+    s.dominant_error_pattern.replace(/_/g, ' ').replace(/\w/g, c => c.toUpperCase());
+  document.getElementById('oe-weakest-domain').textContent = s.weakest_domain;
+
+  // Four-paragraph insight — split on double newline
+  const parts = (d.insight || '').split('\n\n');
+  document.getElementById('oe-insight-what').textContent      = parts[0] || '—';
+  document.getElementById('oe-insight-struggle').textContent  = parts[1] || '—';
+  document.getElementById('oe-insight-crosstab').textContent  = parts[2] || '—';
+  document.getElementById('oe-insight-action').textContent    = parts[3] || '—';
+
+  // ── Student group cards ──────────────────────────────────────────────────
+  const clusters = (s.plain_language_clusters || []);
+  const CARD_COLORS = ['#6c63ff','#ff6b6b','#43e097','#ffd166','#4ecdc4','#a55eea'];
+  const tagClass = sev => ({
+    High: 'oe-group-tag-high',
+    Moderate: 'oe-group-tag-moderate',
+    Low: 'oe-group-tag-low'
+  }[sev] || 'oe-group-tag-moderate');
+
+  document.getElementById('oe-group-cards').innerHTML = clusters.map((c, i) => {
+    const color = CARD_COLORS[i % CARD_COLORS.length];
+    return `
+      <div class="oe-group-card" style="border-top-color:${color}">
+        <div class="oe-group-top">
+          <div>
+            <div class="oe-group-name" style="color:${color}">${c.group_name}</div>
+          </div>
+          <div class="oe-group-count" style="text-align:right">
+            <strong style="color:${color}">${c.size}</strong>
+            students<br/>
+            <span>${c.pct}% of class</span>
+          </div>
+        </div>
+        <div class="oe-group-body">${c.what_wrong}</div>
+        <div class="oe-group-tag ${tagClass(c.severity)}">${c.severity_emoji} ${c.severity} priority</div>
+        <div class="oe-group-action">
+          <div class="oe-group-action-label">Suggested action</div>
+          ${c.classroom_action}
+        </div>
+      </div>`;
+  }).join('');
+
+  // Show card and toggle bar; ensure detail section starts collapsed
+  document.getElementById('oe-card').style.display         = 'block';
+  document.getElementById('detail-toggle-bar').style.display = 'flex';
+
+  const detail = document.getElementById('detailed-metrics-section');
+  detail.classList.add('hidden');
+
+  const btn = document.getElementById('toggle-details-btn');
+  btn.classList.remove('expanded');
+  btn.innerHTML = 'Show Detailed Metrics <i class="toggle-arrow">▾</i>';
+}
+
+// ── render results ───────────────────────────────────────────────────────────
 function renderResults(d) {
   document.getElementById('welcome').style.display = 'none';
   const r = document.getElementById('results');
@@ -1096,6 +1906,7 @@ function renderResults(d) {
   Object.values(charts).forEach(c => c.destroy());
   charts = {};
 
+  renderOverallEvaluation(d);
   renderStats(d);
   renderElbow(d);
   renderValidation(d);
@@ -1155,8 +1966,8 @@ function renderElbow(d) {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { color: '#7b7f96' }, grid: { color: '#2a2d3a' } },
-          y: { ticks: { color: '#7b7f96' }, grid: { color: '#2a2d3a' } }
+          x: { ticks: { color: chartTick() }, grid: { color: chartGrid() } },
+          y: { ticks: { color: chartTick() }, grid: { color: chartGrid() } }
         }
       }
     });
@@ -1360,14 +2171,17 @@ function renderCrosstab(d) {
   });
 
   let header = '<tr><th class="row-header">K-modes \\ K-means</th>';
-  for (let j = 0; j < K; j++) header += `<th>${['Low','Moderate','High'][j] || 'Cluster '+j}</th>`;
+  for (let j = 0; j < K; j++) header += `<th><span style='font-size:9px;display:block;color:var(--muted);font-family:var(--mono)'>GROUP ${j+1}</span>${(d.kmeans_profiles[j]?.dominant_error || 'Cluster '+j).replace(/_/g,' ')}</th>`;
   header += '</tr>';
 
   let body = '';
   for (let i = 0; i < K; i++) {
     const row    = d.cross_tab[i] || [];
     const maxVal = Math.max(...d.cross_tab.flat());
-    body += `<tr><td class="row-header">${(d.kmodes_profiles[i]?.dominant_error || 'Error').replace(/_/g,' ')}</td>`;
+    body += `<tr><td class="row-header" style="white-space:nowrap">
+  <span style="font-size:9px;color:var(--muted);display:block;margin-bottom:2px;font-family:var(--mono)">GROUP ${i+1}</span>
+  ${(d.kmodes_profiles[i]?.dominant_error || 'Error').replace(/_/g,' ')}
+</td>`;
     for (let j = 0; j < K; j++) {
       const v    = row[j] || 0;
       const pct  = maxVal > 0 ? v / maxVal : 0;
@@ -1492,13 +2306,13 @@ function renderDomainChart(d) {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#7b7f96', font: { size: 11 } } }
+        legend: { labels: { color: chartTick(), font: { size: 11 } } }
       },
       scales: {
-        x: { ticks: { color: '#7b7f96' }, grid: { color: '#2a2d3a' } },
+        x: { ticks: { color: chartTick() }, grid: { color: chartGrid() } },
         y: {
-          ticks: { color: '#7b7f96', callback: v => v+'%' },
-          grid: { color: '#2a2d3a' },
+          ticks: { color: chartTick(), callback: v => v+'%' },
+          grid: { color: chartGrid() },
           max: 100
         }
       }
