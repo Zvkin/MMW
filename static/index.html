@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ErrPattern — Student Error Clustering</title>
+<title>Kluster — Student Error Clustering</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -1024,7 +1024,7 @@ table.stud-table {
   <div class="brand" style="margin-bottom:0;flex:1">
     <div class="brand-icon">⬡</div>
     <div>
-      <div class="brand-name">ErrPattern</div>
+      <div class="brand-name">Kluster</div>
     </div>
   </div>
   <button class="theme-toggle" onclick="toggleTheme()" style="padding:4px 10px;gap:5px">
@@ -1045,7 +1045,7 @@ table.stud-table {
       <div class="brand">
         <div class="brand-icon">⬡</div>
         <div>
-          <div class="brand-name">ErrPattern</div>
+          <div class="brand-name">Kluster</div>
           <div class="brand-sub">K-modes + K-means</div>
         </div>
       </div>
@@ -1121,8 +1121,9 @@ table.stud-table {
       <div id="ank-csv-panel" style="display:none">
         <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.6">
           Upload a CSV with columns:<br/>
-          <span style="font-family:var(--mono);color:var(--accent)">question, A, B, C, D</span><br/>
-          Each cell = error type or "correct"
+          <span style="font-family:var(--mono);color:var(--accent)">question, domain, A, B, C, D</span><br/>
+          Each A–D cell = error type or "correct".<br/>
+          <strong style="color:var(--accent3)">Domain names &amp; distractor types are set automatically from the CSV.</strong>
         </div>
 
         <!-- sample download -->
@@ -1515,15 +1516,8 @@ const CLUSTER_COLORS = COLORS;
 
 // ── init defaults ──────────────────────────────────────────────────────────
 window.onload = () => {
-  // default domains
-  [
-    {name:'Financial Math', start:1, end:10},
-    {name:'Logical & Critical Thinking', start:11, end:20},
-    {name:'Problem Solving', start:21, end:30},
-  ].forEach(d => addDomain(d));
-
-  // default tags
-  ['off_by_one','sign_error','decimal'].forEach(t => addTag(t));
+  // start with one empty domain row
+  addDomain({name:'', start:1, end:10});
 };
 
 // ── dropzone ───────────────────────────────────────────────────────────────
@@ -2384,63 +2378,131 @@ document.getElementById('ank-csv-input').addEventListener('change', e => {
   if (e.target.files[0]) uploadAnkCsv(e.target.files[0]);
 });
 
-async function uploadAnkCsv(file) {
-  const fd = new FormData();
-  fd.append('answer_key_csv', file);
-
+function uploadAnkCsv(file) {
   const status = document.getElementById('ank-csv-status');
   status.style.display = 'block';
   status.style.color = 'var(--muted)';
   status.textContent = 'Parsing…';
 
-  try {
-    const res  = await fetch('/api/parse-answer-key', {method:'POST', body: fd});
-    const data = await res.json();
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const text  = e.target.result;
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) throw new Error('CSV must have a header and at least one row.');
 
-    if (!res.ok) throw new Error(data.error);
+      // parse header — support both with and without domain column
+      const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const qIdx   = header.indexOf('question');
+      const domIdx = header.indexOf('domain');
+      const choiceLetters = ['a','b','c','d'];
+      const choiceIdxs    = choiceLetters.map(l => header.indexOf(l));
 
-    // inject answer key and distractor categories into app state
-    window._csvAnswerKey = data.answer_key;
+      if (qIdx === -1) throw new Error('CSV missing "question" column.');
+      if (choiceIdxs.some(i => i === -1)) throw new Error('CSV missing one of columns: A, B, C, D.');
 
-    // auto-add any new distractor categories found in the CSV
-    data.distractor_categories.forEach(t => {
-      if (!tags.includes(t)) { tags.push(t); }
-    });
-    renderTags();
+      const answerKey = {};
+      const foundDistractors = new Set();
+      // domainName → {start, end} using question numbers (1-based index)
+      const domainMap = {};   // domainName → [qNumbers]
 
-    // show success
-    ankDz.classList.add('has-file');
-    document.getElementById('ank-dz-text').textContent =
-      `✓ ${file.name} — ${data.item_count} items loaded`;
-    status.style.color = 'var(--accent3)';
-    status.textContent =
-      `Loaded ${data.item_count} items. ` +
-      `Distractor categories: ${data.distractor_categories.join(', ')}`;
+      lines.slice(1).forEach((line, rowIdx) => {
+        if (!line.trim()) return;
+        const cols = line.split(',').map(c => c.trim());
+        const qRaw = cols[qIdx] || '';
+        const qKey = qRaw.toLowerCase().startsWith('q') ? qRaw : `q${rowIdx+1}`;
+        const qNum = rowIdx + 1; // 1-based question number
 
-    checkReady();
-  } catch(e) {
-    status.style.color = 'var(--accent2)';
-    status.textContent = 'Error: ' + e.message;
-  }
+        const domainName = domIdx !== -1 ? (cols[domIdx] || '').trim() : '';
+
+        if (domainName) {
+          if (!domainMap[domainName]) domainMap[domainName] = [];
+          domainMap[domainName].push(qNum);
+        }
+
+        answerKey[qKey] = {};
+        choiceLetters.forEach((letter, li) => {
+          const val = (cols[choiceIdxs[li]] || '').trim();
+          answerKey[qKey][letter.toUpperCase()] = val;
+          if (val && val !== 'correct') foundDistractors.add(val);
+        });
+      });
+
+      const itemCount = Object.keys(answerKey).length;
+      const distractorList = [...foundDistractors];
+
+      // ── auto-update domains from CSV ──────────────────────────────────────
+      if (Object.keys(domainMap).length > 0) {
+        domains = [];
+        Object.entries(domainMap).forEach(([name, nums]) => {
+          const id = Date.now() + Math.random();
+          domains.push({
+            id,
+            name,
+            start: Math.min(...nums),
+            end:   Math.max(...nums)
+          });
+        });
+        renderDomains();
+      }
+
+      // ── auto-update distractor tags from CSV ──────────────────────────────
+      if (distractorList.length > 0) {
+        tags = [];
+        distractorList.forEach(t => { if (!tags.includes(t)) tags.push(t); });
+        renderTags();
+        rebuildAnkSelects();
+      }
+
+      // ── store parsed answer key ───────────────────────────────────────────
+      window._csvAnswerKey = answerKey;
+
+      ankDz.classList.add('has-file');
+      document.getElementById('ank-dz-text').textContent =
+        `✓ ${file.name} — ${itemCount} items loaded`;
+      status.style.color = 'var(--accent3)';
+
+      const domainSummary = Object.keys(domainMap).length > 0
+        ? ` Domains: ${Object.keys(domainMap).join(', ')}.`
+        : '';
+      status.textContent =
+        `Loaded ${itemCount} items.${domainSummary} ` +
+        `Distractors: ${distractorList.join(', ') || '(none)'}`;
+
+      checkReady();
+    } catch(err) {
+      status.style.color = 'var(--accent2)';
+      status.textContent = 'Error: ' + err.message;
+    }
+  };
+  reader.readAsText(file);
 }
 
 // ── sample answer key CSV download ────────────────────────────────────────
 function downloadSampleAnkCsv() {
-  const maxItem = Math.max(...domains.map(d => d.end), 10);
-  const cats    = tags.length ? tags : ['off_by_one', 'sign_error', 'decimal'];
-  const choices = ['A','B','C','D'];
+  const hasDomains = domains.length > 0 && domains.some(d => d.end >= d.start);
+  const maxItem    = hasDomains ? Math.max(...domains.map(d => d.end)) : 10;
+  const cats       = tags.length ? tags : ['off_by_one', 'sign_error', 'decimal'];
+  const choices    = ['A','B','C','D'];
 
-  let rows = ['question,A,B,C,D'];
+  // build a qNum → domainName lookup
+  const domainLookup = {};
+  domains.forEach(d => {
+    const name = d.name || 'Domain';
+    for (let q = d.start; q <= d.end; q++) domainLookup[q] = name;
+  });
+
+  let rows = ['question,domain,A,B,C,D'];
   for (let i = 1; i <= maxItem; i++) {
-    // rotate: correct answer cycles through A B C D
+    const domainName = domainLookup[i] || 'Domain';
     const correctIdx = (i - 1) % 4;
-    const distractors = [...cats, ...cats]; // enough to fill 3 wrong slots
+    const distractors = [...cats, ...cats];
     let dIdx = 0;
     const row = choices.map((ch, ci) => {
       if (ci === correctIdx) return 'correct';
       return distractors[dIdx++] || 'off_by_one';
     });
-    rows.push(`q${i},${row.join(',')}`);
+    rows.push(`q${i},${domainName},${row.join(',')}`);
   }
 
   const blob = new Blob([rows.join('\n')], {type:'text/csv'});

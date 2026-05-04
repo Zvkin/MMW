@@ -766,13 +766,17 @@ def parse_answer_key():
         required = {'question', 'a', 'b', 'c', 'd'}
         if not required.issubset(set(df.columns)):
             return jsonify({
-                'error': f'CSV must have columns: question, A, B, C, D. Found: {list(df.columns)}'
+                'error': f'CSV must have columns: question, A, B, C, D (and optionally domain). Found: {list(df.columns)}'
             }), 400
+
+        has_domain_col = 'domain' in df.columns
 
         answer_key = {}
         distractor_categories = set()
+        # domainName -> list of 1-based question numbers
+        domain_map = {}
 
-        for _, row in df.iterrows():
+        for q_num, (_, row) in enumerate(df.iterrows(), start=1):
             q = str(row['question']).strip().lower()
             mapping = {
                 'A': str(row['a']).strip(),
@@ -782,13 +786,30 @@ def parse_answer_key():
             }
             answer_key[q] = mapping
             for v in mapping.values():
-                if v != 'correct':
+                if v and v != 'correct':
                     distractor_categories.add(v)
+
+            # collect domain membership
+            if has_domain_col:
+                domain_name = str(row['domain']).strip()
+                if domain_name and domain_name.lower() not in ('', 'nan', 'none'):
+                    domain_map.setdefault(domain_name, []).append(q_num)
+
+        # build domain list with start/end item numbers
+        domains_out = []
+        for dname, q_nums in domain_map.items():
+            domains_out.append({
+                'name': dname,
+                'start': min(q_nums),
+                'end': max(q_nums)
+            })
 
         return jsonify({
             'answer_key': answer_key,
             'distractor_categories': sorted(distractor_categories),
-            'item_count': len(answer_key)
+            'item_count': len(answer_key),
+            'domains': domains_out,          # populated when domain column present
+            'has_domain_col': has_domain_col
         })
 
     except Exception as e:
